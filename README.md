@@ -1,4 +1,4 @@
-# PTTP CI / CD 
+# PTTP CI / CD
 
 This repository holds the Terraform code to create a [CodeBuild](https://aws.amazon.com/codebuild/) / [CodePipeline](https://aws.amazon.com/codepipeline/) service in AWS.
 
@@ -28,9 +28,10 @@ phases:
 
 ### Testing
 
-To run automated tests, create a  `buildspec.test.yml` file, and place it in the root of your project.
+To run automated tests, create a `buildspec.test.yml` file, and place it in the root of your project.
 
 example:
+
 ```yaml
 version: 0.2
 
@@ -45,6 +46,7 @@ phases:
 For deployments, create a `buildspec.yml` file.
 
 example:
+
 ```yaml
 version: 0.2
 
@@ -84,3 +86,63 @@ Run Terraform with the variables file:
 terraform apply -var-file=".tfvars"
 ```
 
+## Deploying across environments
+
+CodePipeline can be used to centralise deployment initiation across multiple environments to a single location. This is the recommended approach for moving artefacts up through environments.
+
+### Terminology
+
+- The AWS account that allows another account to perform actions on it is referred to as the "trusting account".
+- The AWS account assumes a role and performs actions on a trusting account is referred to as the "trusted account".
+
+### Diagram
+
+![CodePipeline Cross-Environment Deployments](/images/code-pipeline-cross-environment-deployments.png)
+
+In this diagram:
+
+- Deployments to each trusting account are initiated from CodePipeline in a Shared Services AWS account.
+- The Terraform state for each trusting account is held in a single S3 bucket in the Shared Services account.
+- The Shared Services CodePipeline deploys to trusting accounts by assuming a role in the trusting account account using the [AWS Security Token Service](https://docs.aws.amazon.com/STS/latest/APIReference/welcome.html).
+
+### Getting Started
+
+In order to deploy to multiple environments using this method you will need:
+
+- A CodeBuild pipeline in the PTTP Shared Services AWS account.
+- An IAM role in each trusting account with sufficient priviledges to run Terraform scripts on that trusting account.
+- A policy on each of these roles which allows the Shared Services AWS account to assume the role (see `Example A` below).
+- A policy on your CodeBuild to tell it to assume a role in the trusting account (see `Example B` below).
+
+### Policy On Trusting Account (Example A)
+
+This example policy would be created on an IAM role in a trusting account.
+
+It allows the user `root` in an AWS trusted account (which has an AWS account ID of `555555555555`) to assume a role on the trusting account.
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Principal": { "AWS": "arn:aws:iam::555555555555:root" },
+    "Action": "sts:AssumeRole"
+  }
+}
+```
+
+### Assume Role On CodeBuild (Example B)
+
+This IAM role policy snippet tells the CodeBuild pipeline on the trusted account to assume a role named `production-deployment-role` on the trusting account (which has an AWS account ID of `999999999999`).
+
+```json
+{
+  "Effect": "Allow",
+  "Action": "sts:AssumeRole",
+  "Resource": "arn:aws:iam::999999999999:role/production-deployment-role"
+}
+```
+
+### Getting Help
+
+As mentioned early in this document, please speak to someone on the PTTP team if you need help getting your pipelines and related Security Token Service configuration set up.
