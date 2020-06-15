@@ -97,7 +97,7 @@ CodePipeline can be used to centralise deployment initiation across multiple env
 
 ### Diagram
 
-![CodePipeline Cross-Environment Deployments](documentation/images/code-pipeline-cross-environment-deployments.png)
+![CodePipeline Cross-Environment Deployments](./documentation/images/code-pipeline-cross-environment-deployments.png)
 
 In this diagram:
 
