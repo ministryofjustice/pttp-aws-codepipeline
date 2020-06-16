@@ -5,6 +5,7 @@ This repository holds the Terraform code to create a [CodeBuild](https://aws.ama
 ## How to use this repo
 
 The source code in this repository is provided only as a reference.
+
 Please speak to someone on the PTTP team to get a pipeline set up.
 
 This pipeline will be integrated with a Github repository, and build your project according to your [buildspec](https://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html) files.
@@ -109,6 +110,7 @@ In this diagram:
 
 In order to deploy to multiple environments using this method you will need:
 
+- Access to the Shared Services AWS account (speak to the PTTP team to get this set up).
 - A CodeBuild pipeline in the PTTP Shared Services AWS account.
 - An IAM role in each trusting account with sufficient priviledges to run Terraform scripts on that trusting account.
 - A policy on each of these roles which allows the Shared Services AWS account to assume the role (see `Example A` below).
